@@ -1,0 +1,8 @@
+{
+  "name": "hydrooj-oauth-dlufl",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "author": "hprogq <hhq@live.com>",
+  "license": "AGPL-3.0-or-later",
+  "preferUnplugged": true
+}

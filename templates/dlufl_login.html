@@ -1,0 +1,285 @@
+{% extends "layout/immersive.html" %}
+{% block content %}
+<style>
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.show {
+    display: flex;
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease-out;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .modal-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f5f5f5;
+  }
+
+  .modal-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .modal-title {
+    color: #333;
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .modal-message {
+    color: #666;
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .error-icon {
+    color: #ff6b6b;
+    background: #ffebee;
+  }
+
+  .error-icon svg {
+    color: #ff6b6b;
+  }
+</style>
+
+<div class="row"><div class="columns">
+  <div class="immersive--content immersive--center">
+    <h1>{{ _(pageTitle) or _('Login with DLUFL-CAS') }}</h1>
+
+    <form id="dlufl-login-form">
+      <div class="row"><div class="columns">
+        <label class="inverse material textbox">
+          {{ _('DLUFL-CAS Username') }}
+          <input name="username" type="text" id="username" required autofocus>
+        </label>
+      </div></div>
+
+      <div class="row"><div class="columns">
+        <label class="inverse material textbox">
+          {{ _('DLUFL-CAS Password') }}
+          <input name="password" type="password" id="password" required>
+        </label>
+      </div></div>
+
+      <div class="row"><div class="columns">
+        <div class="text-center">
+          <button type="submit" id="login-btn" class="inverse expanded rounded primary button">
+            {{ _(buttonText) or _('Login') }}
+          </button>
+        </div>
+      </div></div>
+    </form>
+
+    <div class="row"><div class="columns">
+      <div class="text-center supplementary inverse">
+        <a href="{{ casLoginUrl }}">{{ _(altLoginText) or _('Or use DLUFL-CAS') }}</a>
+      </div>
+    </div></div>
+
+    <div class="row"><div class="columns">
+      <div class="text-center" style="margin-top: 50px;">
+        <span class="badge" style="background: rgba(76, 175, 80, 0.2); color: #4CAF50; padding: 4px 12px; border-radius: 12px; font-size: 12px; border: 1px solid rgba(76, 175, 80, 0.3);">
+          {{ networkBadgeText or _('Internal Network') }}
+        </span>
+      </div>
+    </div></div>
+  </div>
+</div></div>
+
+<div id="loading-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-icon">
+      <div class="spinner"></div>
+    </div>
+    <div class="modal-title">{{ _(loadingTitle) or _('Logging in...') }}</div>
+    <div class="modal-message">{{ _(loadingMessage) or _('Please wait while we authenticate your credentials') }}</div>
+  </div>
+</div>
+
+<div id="error-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-icon error-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </div>
+    <div class="modal-title">{{ _(errorTitle) or _('Login Failed') }}</div>
+    <div class="modal-message" id="error-message-text"></div>
+  </div>
+</div>
+
+<script src="/des.js"></script>
+<script type="text/javascript">
+(function() {
+  const form = document.getElementById('dlufl-login-form');
+  const loginBtn = document.getElementById('login-btn');
+  const loadingModal = document.getElementById('loading-modal');
+  const errorModal = document.getElementById('error-modal');
+  const errorMessageText = document.getElementById('error-message-text');
+
+  let isSubmitting = false;
+
+  function showLoading() {
+    loadingModal.classList.add('show');
+    loginBtn.disabled = true;
+    loginBtn.style.opacity = '0.6';
+    loginBtn.style.cursor = 'not-allowed';
+  }
+
+  function hideLoading() {
+    loadingModal.classList.remove('show');
+    loginBtn.disabled = false;
+    loginBtn.style.opacity = '1';
+    loginBtn.style.cursor = 'pointer';
+    isSubmitting = false;
+  }
+
+  function showError(message) {
+    errorMessageText.textContent = message;
+    errorModal.classList.add('show');
+
+    setTimeout(() => {
+      hideError();
+    }, 3000);
+  }
+
+  function hideError() {
+    errorModal.classList.remove('show');
+    isSubmitting = false;
+  }
+
+  loadingModal.addEventListener('click', function(e) {
+    if (e.target === loadingModal) {
+      hideLoading();
+    }
+  });
+
+  errorModal.addEventListener('click', function(e) {
+    if (e.target === errorModal) {
+      hideError();
+    }
+  });
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!username || !password) {
+      showError('{{ _("Please enter username and password") }}');
+      return;
+    }
+
+    isSubmitting = true;
+    showLoading();
+
+    try {
+      const tokenResponse = await fetch('{{ tokenUrl | safe }}');
+      if (!tokenResponse.ok) {
+        throw new Error('{{ _("Failed to get token from server") }}');
+      }
+
+      const tokenData = await tokenResponse.json();
+
+      if (!tokenData.token || !tokenData.lt || !tokenData.execution) {
+        throw new Error('{{ _("Invalid token data received") }}');
+      }
+
+      const rsa = strEnc(username + password + tokenData.lt, '1', '2', '3');
+
+      const formData = new FormData();
+      formData.append('token', tokenData.token);
+      formData.append('rsa', rsa);
+      formData.append('ul', String(username.length));
+      formData.append('pl', String(password.length));
+      formData.append('execution', tokenData.execution);
+
+      const submitResponse = await fetch('{{ submitUrl | safe }}', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!submitResponse.ok) {
+        try {
+          const errorData = await submitResponse.json();
+          throw new Error(errorData.message || errorData.error || '{{ _("Login failed") }}');
+        } catch (parseError) {
+          throw new Error('{{ _("Login failed with status") }}: ' + submitResponse.status);
+        }
+      }
+
+      const result = await submitResponse.json();
+
+      if (result.success && result.ticket) {
+        const finalUrl = new URL('{{ finalCallbackUrl | safe }}', window.location.origin);
+        finalUrl.searchParams.set('ticket', result.ticket);
+        window.location.href = finalUrl.toString();
+      } else {
+        throw new Error((result && result.message) || '{{ _("Login failed") }}');
+      }
+    } catch (error) {
+      hideLoading();
+      showError(error.message || '{{ _("Unknown error") }}');
+      console.error('Login error:', error);
+    }
+  });
+})();
+</script>
+{% endblock %}

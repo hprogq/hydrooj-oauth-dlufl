@@ -1,0 +1,33 @@
+"Login with DLUFL-CAS": 使用数字大外登录
+"DLUFL-CAS Username": 数字大外账号
+"DLUFL-CAS Password": 数字大外密码
+"Login": 登录
+"Logging in...": 登录中...
+"Or use DLUFL-CAS": 或跳转至数字大外进行登录
+"Internal Network": 内网
+"Please enter username and password": 请输入用户名和密码
+"Login error occurred": 登录时发生错误
+"Redirect to DLUFL-CAS": 点击跳转至数字大外
+"Please click the button above to redirect to DLUFL-CAS": 请点击上方按钮跳转至数字大外进行登录
+"External Network": 外网
+"Username/password login is only allowed from internal network": 用户名/密码登录仅限内网访问
+"Invalid payload": 无效请求
+"Username and password are required": 用户名或密码为空
+"dlufl_login": 数字大外登录页
+"DLUFL-CAS": 数字大外
+"User does not exist. Maybe it was not imported yet? Sit back and relax.": 用户不存在。可能还没被导入？稍等一下吧。
+"This user has been bound to another CAS account.": 该用户已绑定到其他数字大外账号。请联系管理员解绑。
+"This CAS account has been bound to another user.": 该数字大外账号已绑定到其他用户。请联系管理员解绑。
+"Invalid payload or token expired": 无效请求或请求已过期
+"Invalid token data received": 服务器返回的数据无效
+"Failed to get token from server": 从服务器获取令牌失败
+"Login failed": 登录失败
+"Login Failed": 登录失败
+"Login failed with status": 登录失败，状态码
+"Unknown error": 未知错误
+"Please wait while we authenticate your credentials": 登录中，请稍候
+"Admin Login": 管理员登录
+"Admin Username": 管理员用户名
+"Admin Password": 管理员密码
+"Use DLUFL-CAS to confirm": 使用数字大外进行验证
+"Confirm with DLUFL-CAS": 使用数字大外进行验证
